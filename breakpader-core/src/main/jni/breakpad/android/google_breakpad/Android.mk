@@ -53,6 +53,9 @@ LOCAL_PATH := $(call my-dir)/../..
 # Defube the client library module, as a simple static library that
 # exports the right include path / linker flags to its users.
 
+
+############################ Breakpad Client #################################
+
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := breakpad_client
@@ -91,6 +94,69 @@ LOCAL_SRC_FILES := \
     src/common/linux/linux_libc_support.cc \
     src/common/linux/memory_mapped_file.cc \
     src/common/linux/safe_readlink.cc
+
+LOCAL_C_INCLUDES        := $(LOCAL_PATH)/src/common/android/include \
+                           $(LOCAL_PATH)/src
+
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
+LOCAL_EXPORT_LDLIBS     := -llog
+
+include $(BUILD_STATIC_LIBRARY)
+
+# Done.
+
+
+############################ Breakpad Tools #################################
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := breakpad_tools
+
+LOCAL_CPP_EXTENSION := .cc
+
+LOCAL_ARM_MODE := arm
+
+LOCAL_SRC_FILES := \
+        src/common/linux/dump_symbols.cc\
+    	src/common/dwarf_cfi_to_module.cc \
+    	src/common/dwarf_cu_to_module.cc \
+    	src/common/dwarf_line_to_module.cc src/common/language.cc \
+    	src/common/module.cc src/common/path_helper.cc \
+    	src/common/stabs_reader.cc src/common/stabs_to_module.cc \
+    	src/common/dwarf/bytereader.cc \
+    	src/common/dwarf/dwarf2diehandler.cc \
+    	src/common/dwarf/dwarf2reader.cc \
+    	src/common/dwarf/elf_reader.cc src/common/linux/crc32.cc \
+    	src/common/linux/dump_symbols.cc \
+    	src/common/linux/elf_symbols_to_module.cc \
+    	src/common/linux/elfutils.cc\
+    	src/common/linux/file_id.cc \
+    	src/common/linux/linux_libc_support.cc \
+    	src/common/linux/memory_mapped_file.cc \
+    	src/common/linux/safe_readlink.cc \
+
+LOCAL_C_INCLUDES        := $(LOCAL_PATH)/src/common/android/include \
+                           $(LOCAL_PATH)/src
+
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
+LOCAL_EXPORT_LDLIBS     := -llog
+
+include $(BUILD_STATIC_LIBRARY)
+
+# Done.
+
+############################ Breakpad Processor #################################
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := breakpad_processor
+
+LOCAL_CPP_EXTENSION := .cc
+
+LOCAL_ARM_MODE := arm
+
+LOCAL_SRC_FILES := \
+
 
 LOCAL_C_INCLUDES        := $(LOCAL_PATH)/src/common/android/include \
                            $(LOCAL_PATH)/src

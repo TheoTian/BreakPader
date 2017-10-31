@@ -32,6 +32,7 @@
 #include <assert.h>
 #include <libgen.h>
 #include <string.h>
+#include <stdlib.h>
 
 namespace google_breakpad {
 

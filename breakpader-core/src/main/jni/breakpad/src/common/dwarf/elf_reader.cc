@@ -41,6 +41,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <endian.h>
 // TODO(saugustine): Add support for compressed debug.
 // Also need to add configure tests for zlib.
 //#include "zlib.h"
