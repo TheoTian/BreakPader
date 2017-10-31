@@ -26,6 +26,10 @@ public class NativeBreakpader {
         System.loadLibrary("breakpader");
     }
 
+    public static class ProcessResult {
+
+    }
+
     /**
      * API
      */
@@ -34,7 +38,7 @@ public class NativeBreakpader {
      * init dump client
      *
      * @param dump_path
-     * @return
+     * @return result code
      */
     public static native int init(String dump_path);
 
@@ -43,10 +47,18 @@ public class NativeBreakpader {
      *
      * @param soPath
      * @param saveSyms
-     * @return
+     * @return result code
      */
     public static native int dumpSymbolFile(String soPath, String saveSyms);
 
+    /**
+     * translate dump file to people readable content
+     *
+     * @param dumpFilePath
+     * @param symbolFilesDir
+     * @return process result
+     */
+    public static native ProcessResult translateDumpFile(String dumpFilePath, String symbolFilesDir);
 
     /**
      * test

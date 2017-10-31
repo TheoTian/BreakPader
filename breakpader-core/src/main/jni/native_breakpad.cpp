@@ -7,6 +7,9 @@ using google_breakpad::WriteSymbolFile;
 using google_breakpad::WriteSymbolFileHeader;
 
 static char *class_nativebreakpader = "com/theo/breakpader/NativeBreakpader";
+/**
+ * TEST ZONE
+ */
 
 JNIEXPORT jstring JNICALL TestJNI(JNIEnv *env, jobject jobj) {
     char *str = "Test JNI";
@@ -21,6 +24,10 @@ JNIEXPORT jint JNICALL TestCrash(JNIEnv *env, jobject jobj) {
     LOGE("native crash capture end");
     return 0;
 }
+
+/**
+ * API ZONE
+ */
 
 bool DumpCallback(const google_breakpad::MinidumpDescriptor &descriptor,
                   void *context,
@@ -40,10 +47,10 @@ JNIEXPORT jint JNICALL Init(JNIEnv *env,
     return 0;
 }
 
-JNIEXPORT jint JNICALL DumpSymbolsFile(JNIEnv *env, jobject jobj, jstring jso_path,
+JNIEXPORT jint JNICALL DumpSymbolsFile(JNIEnv *env, jobject jobj, jstring jso_file_path,
                                        jstring jsymbol_file_path) {
     jint RESULT = JNI_OK;
-    const char *so_path = (char *) env->GetStringUTFChars(jso_path, NULL);
+    const char *so_file_path = (char *) env->GetStringUTFChars(jso_file_path, NULL);
     const char *symbol_file_path = (char *) env->GetStringUTFChars(jsymbol_file_path, NULL);
 
     std::ofstream file;
@@ -51,7 +58,7 @@ JNIEXPORT jint JNICALL DumpSymbolsFile(JNIEnv *env, jobject jobj, jstring jso_pa
     file.open(symbol_file_path);
 
     google_breakpad::DumpOptions options(ALL_SYMBOL_DATA, true);
-    if (!WriteSymbolFile(so_path, debug_dirs, options, file)) {
+    if (!WriteSymbolFile(so_file_path, debug_dirs, options, file)) {
         LOGE("Failed to write symbol file.\n");
         RESULT = JNI_ERR;
         goto END;
@@ -61,18 +68,23 @@ JNIEXPORT jint JNICALL DumpSymbolsFile(JNIEnv *env, jobject jobj, jstring jso_pa
 
     END:
     file.close();
-    env->ReleaseStringUTFChars(jso_path, so_path);
+    env->ReleaseStringUTFChars(jso_file_path, so_file_path);
     env->ReleaseStringUTFChars(jsymbol_file_path, symbol_file_path);
 
     return RESULT;
 }
 
+JNIEXPORT jobject JNICALL TranslateDumpFile(JNIEnv *env, jobject jobj, jstring jdump_file_path,
+                                            jstring jsymbol_files_dir) {
+
+}
 
 static JNINativeMethod nativeMethods[] = {
-        {"testJNI",        "()Ljava/lang/String;",                    (void *) TestJNI},
-        {"init",           "(Ljava/lang/String;)I",                   (void *) Init},
-        {"testCrash",      "()I",                                     (void *) TestCrash},
-        {"dumpSymbolFile", "(Ljava/lang/String;Ljava/lang/String;)I", (void *) DumpSymbolsFile},
+        {"testJNI",           "()Ljava/lang/String;",                    (void *) TestJNI},
+        {"init",              "(Ljava/lang/String;)I",                   (void *) Init},
+        {"testCrash",         "()I",                                     (void *) TestCrash},
+        {"dumpSymbolFile",    "(Ljava/lang/String;Ljava/lang/String;)I", (void *) DumpSymbolsFile},
+        {"translateDumpFile", "(Ljava/lang/String;Ljava/lang/String;)I", (void *) TranslateDumpFile},
 };
 
 JNIEXPORT int JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
