@@ -53,6 +53,61 @@ LOCAL_PATH := $(call my-dir)/../..
 # Defube the client library module, as a simple static library that
 # exports the right include path / linker flags to its users.
 
+############################ Breakpad ThirdPart #################################
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := breakpad_thirdpart
+
+LOCAL_CPP_EXTENSION := .cc
+
+# Breakpad uses inline ARM assembly that requires the library
+# to be built in ARM mode. Otherwise, the build will fail with
+# cryptic assembler messages like:
+#   Compile++ thumb  : google_breakpad_client <= crash_generation_client.cc
+#   /tmp/cc8aMSoD.s: Assembler messages:
+#   /tmp/cc8aMSoD.s:132: Error: invalid immediate: 288 is out of range
+#   /tmp/cc8aMSoD.s:244: Error: invalid immediate: 296 is out of range
+LOCAL_ARM_MODE := arm
+
+# List of client source files, directly taken from Makefile.am
+LOCAL_SRC_FILES := \
+        src/third_party/libdisasm/ia32_implicit.c \
+    	src/third_party/libdisasm/ia32_implicit.h \
+    	src/third_party/libdisasm/ia32_insn.c \
+    	src/third_party/libdisasm/ia32_insn.h \
+    	src/third_party/libdisasm/ia32_invariant.c \
+    	src/third_party/libdisasm/ia32_invariant.h \
+    	src/third_party/libdisasm/ia32_modrm.c \
+    	src/third_party/libdisasm/ia32_modrm.h \
+    	src/third_party/libdisasm/ia32_opcode_tables.c \
+    	src/third_party/libdisasm/ia32_opcode_tables.h \
+    	src/third_party/libdisasm/ia32_operand.c \
+    	src/third_party/libdisasm/ia32_operand.h \
+    	src/third_party/libdisasm/ia32_reg.c \
+    	src/third_party/libdisasm/ia32_reg.h \
+    	src/third_party/libdisasm/ia32_settings.c \
+    	src/third_party/libdisasm/ia32_settings.h \
+    	src/third_party/libdisasm/libdis.h \
+    	src/third_party/libdisasm/qword.h \
+    	src/third_party/libdisasm/x86_disasm.c \
+    	src/third_party/libdisasm/x86_format.c \
+    	src/third_party/libdisasm/x86_imm.c \
+    	src/third_party/libdisasm/x86_imm.h \
+    	src/third_party/libdisasm/x86_insn.c \
+    	src/third_party/libdisasm/x86_misc.c \
+    	src/third_party/libdisasm/x86_operand_list.c \
+    	src/third_party/libdisasm/x86_operand_list.h
+
+LOCAL_C_INCLUDES        := $(LOCAL_PATH)/src/common/android/include \
+                           $(LOCAL_PATH)/src
+
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
+LOCAL_EXPORT_LDLIBS     := -llog
+
+include $(BUILD_STATIC_LIBRARY)
+
+# Done.
 
 ############################ Breakpad Client #################################
 
@@ -199,6 +254,8 @@ LOCAL_C_INCLUDES        := $(LOCAL_PATH)/src/common/android/include \
 
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
 LOCAL_EXPORT_LDLIBS     := -llog
+
+LOCAL_STATIC_LIBRARIES := breakpad_thirdpart
 
 include $(BUILD_STATIC_LIBRARY)
 

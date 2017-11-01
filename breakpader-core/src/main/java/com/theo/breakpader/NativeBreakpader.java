@@ -27,7 +27,6 @@ public class NativeBreakpader {
     }
 
     public static class ProcessResult {
-
     }
 
     /**

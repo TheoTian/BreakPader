@@ -23,23 +23,30 @@ import android.view.View;
 
 import com.theo.breakpader.NativeBreakpader;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 
 
 public class MainActivity extends AppCompatActivity {
 
+    String symbolFileRoot;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        symbolFileRoot = MainActivity.this.getExternalCacheDir().getAbsolutePath() + "/symbols/";
     }
 
     private void initView() {
         findViewById(R.id.btInit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                NativeBreakpader.init(getExternalCacheDir().getAbsolutePath());
+                String dumpDir = getExternalCacheDir().getAbsolutePath() + "/dump/";
+                new File(dumpDir).mkdirs();
+                NativeBreakpader.init(dumpDir);
             }
         });
 
@@ -54,13 +61,63 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 long start = System.currentTimeMillis();
-                String symbolsFilePath = MainActivity.this.getExternalCacheDir().getAbsolutePath() + "/libbreakpader.so.sysm";
+                String symbolsFilePath = MainActivity.this.getExternalCacheDir().getAbsolutePath() + "/libbreakpader.so.sym";
                 File symbolsFile = new File(symbolsFilePath);
                 if (symbolsFile.exists()) {
                     symbolsFile.delete();
                 }
                 NativeBreakpader.dumpSymbolFile(MainActivity.this.getApplicationInfo().dataDir + "/lib/libbreakpader.so", symbolsFilePath);
+                try {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(symbolsFile)));
+                    String line = null;
+                    String moduleLine = null;
+
+                    while ((line = reader.readLine()) != null) {
+                        if (line.startsWith("MODULE")) {
+                            moduleLine = line;
+                        }
+                    }
+
+                    if (moduleLine == null) {
+                        return;
+                    }
+
+                    String[] modules = moduleLine.split("\\s");
+                    String os = null;
+                    String architecture = null;
+                    String id = null;
+                    String name = null;
+                    if (modules.length == 5) {
+                        os = modules[1];
+                        architecture = modules[2];
+                        id = modules[3];
+                        name = modules[4];
+                    }
+
+
+                    File symbolDir = new File(symbolFileRoot + name + "/" + id);
+                    symbolDir.mkdirs();
+
+                    symbolsFile.renameTo(new File(symbolDir.getAbsolutePath() + "/" + symbolsFile.getName()));
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 Log.d("test", "dumpSymbolFile cost:" + (System.currentTimeMillis() - start));
+            }
+        });
+
+        findViewById(R.id.btTranslateDump).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long start = System.currentTimeMillis();
+                File dumpDir = new File(MainActivity.this.getExternalCacheDir().getAbsolutePath() + "/dump/");
+                if (dumpDir.list().length <= 0) {
+                    return;
+                }
+                NativeBreakpader.translateDumpFile(dumpDir.listFiles()[0].getAbsolutePath(), symbolFileRoot);
+                Log.d("test", "translateDumpFile cost:" + (System.currentTimeMillis() - start));
             }
         });
     }

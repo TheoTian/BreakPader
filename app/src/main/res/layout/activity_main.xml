@@ -18,19 +18,28 @@
             android:id="@+id/btInit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="Init"/>
 
         <Button
             android:id="@+id/btTestCrash"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="TestCrash"/>
 
         <Button
             android:id="@+id/btDumpSyms"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="DumpSysm"/>
 
+        <Button
+            android:id="@+id/btTranslateDump"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="TranslateDump"/>
     </LinearLayout>
 </RelativeLayout>
