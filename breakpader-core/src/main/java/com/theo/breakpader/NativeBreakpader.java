@@ -28,9 +28,17 @@ public class NativeBreakpader {
 
     public static class ProcessResult {
         public boolean crashed;
-        public String crash_lib_name;
         public String crash_reason;
         public long crash_address;
+        StackFrame[] crash_stack_frames;
+    }
+
+    public static class StackFrame {
+        public int frame_index;
+        public String code_file;
+        public long instruction;
+        public String function_name;
+        public long offset;
     }
 
     /**

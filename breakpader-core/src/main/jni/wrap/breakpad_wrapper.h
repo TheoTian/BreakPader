@@ -42,18 +42,27 @@
 
 namespace breakpad_wrapper {
 
-    struct translate_result {
-        char *crash_lib_name;
+    struct struct_stack_frame {
+        int frame_index;
+        char *p_code_file = NULL;
+        uint64_t instruction;
+        char *p_function_name = NULL;
+        uint64_t offset;
+    };
+
+    struct struct_translate_result {
         bool crashed;
-        char *crash_reason;
+        char *p_crash_reason = NULL;
         uint64_t crash_address;
+        struct_stack_frame *p_stack_frames = NULL;
+        int stack_frames_num;
     };
 
     int init_breakpad(const char *crash_dump_path);
 
     int dump_symbols_file(const char *so_file_path, const char *dump_symbol_path);
 
-    translate_result translate_crash_file(const char *crash_file_path,
+    struct_translate_result translate_crash_file(const char *crash_file_path,
                                           const char *symbol_files_dir);
 }
 

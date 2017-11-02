@@ -18,6 +18,7 @@
 
 static char *class_nativebreakpader = "com/theo/breakpader/NativeBreakpader";
 static char *class_processresult = "com/theo/breakpader/NativeBreakpader$ProcessResult";
+static char *class_stackframe = "com/theo/breakpader/NativeBreakpader$StackFrame";
 /**
  * API ZONE
  */
@@ -54,11 +55,11 @@ JNIEXPORT jobject JNICALL TranslateCrashFile(JNIEnv *env, jobject jobj, jstring 
     const char *crash_file_path = (char *) env->GetStringUTFChars(jcrash_file_path, NULL);
     const char *symbol_files_dir = (char *) env->GetStringUTFChars(jsymbol_files_dir, NULL);
 
-    breakpad_wrapper::translate_result translateResult =
+    breakpad_wrapper::struct_translate_result translateResult =
             breakpad_wrapper::translate_crash_file(crash_file_path, symbol_files_dir);
 
-    LOGD("JNI translate_crash_file crashed:%d,crash_reason:%s,crash_address: 0x%"
-                 PRIx64, translateResult.crashed, translateResult.crash_reason,
+    LOGD("JNI translate_crash_file crashed:%d,p_crash_reason:%s,crash_address: 0x%"
+                 PRIx64, translateResult.crashed, translateResult.p_crash_reason,
          translateResult.crash_address);
 
     jclass jprocessresult_class = env->FindClass(class_processresult);
@@ -71,17 +72,44 @@ JNIEXPORT jobject JNICALL TranslateCrashFile(JNIEnv *env, jobject jobj, jstring 
                                                           "Ljava/lang/String;");
     jfieldID jfield_long_crash_address = env->GetFieldID(jprocessresult_class, "crash_address",
                                                          "J");
-
+    jfieldID jfield_object_array_frames = env->GetFieldID(jprocessresult_class, "crash_stack_frames",
+                                                         "[Lcom/theo/breakpader/NativeBreakpader$StackFrame;");
+    /**
+     * Get ProcessResult Object
+     */
     jobject jprocessresult_obj = env->NewObject(jprocessresult_class,
                                                 jprocessresult_construct_method);
+
 
     env->SetBooleanField(jprocessresult_obj, jfield_boolean_crashed, translateResult.crashed);
     env->SetLongField(jprocessresult_obj, jfield_long_crash_address, translateResult.crash_address);
     env->SetObjectField(jprocessresult_obj, jfield_string_crash_reason,
-                        env->NewStringUTF(translateResult.crash_reason));
+                        env->NewStringUTF(translateResult.p_crash_reason));
 
-    if (translateResult.crash_reason) {
-        free(translateResult.crash_reason);
+    /**
+     * Get StackFrame Object
+     */
+    jclass jstackframe_class = env->FindClass(class_stackframe);
+    jmethodID jstackframe_construct_method = env->GetMethodID(jstackframe_class,
+                                                              "<init>",
+                                                              "()V");//构造函数ID
+
+    jfieldID jfield_int_frame_index = env->GetFieldID(jstackframe_class, "frame_index", "I");
+    jfieldID jfield_string_code_file = env->GetFieldID(jstackframe_class, "code_file",
+                                                       "Ljava/lang/String;");
+    jfieldID jfield_long_instruction = env->GetFieldID(jstackframe_class, "instruction", "J");
+    jfieldID jfield_string_function_name = env->GetFieldID(jstackframe_class, "function_name",
+                                                           "Ljava/lang/String;");
+    jfieldID jfield_long_offset = env->GetFieldID(jstackframe_class, "offset", "J");
+
+    for (int i = 0; i < translateResult.stack_frames_num; i++) {
+        breakpad_wrapper::struct_stack_frame frame = translateResult.p_stack_frames[i];
+        jobject jstackframe_obj = env->NewObject(jstackframe_class,
+                                                 jstackframe_construct_method);
+    }
+
+    if (translateResult.p_crash_reason) {
+        free(translateResult.p_crash_reason);
     }
 
     env->ReleaseStringUTFChars(jcrash_file_path, crash_file_path);
