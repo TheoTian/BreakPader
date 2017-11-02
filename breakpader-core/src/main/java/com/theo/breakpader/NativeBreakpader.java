@@ -1,5 +1,5 @@
 /*
- *    Copyright 2017, $user
+ *    Copyright 2017, theotian
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -27,6 +27,10 @@ public class NativeBreakpader {
     }
 
     public static class ProcessResult {
+        public boolean crashed;
+        public String crash_lib_name;
+        public String crash_reason;
+        public long crash_address;
     }
 
     /**
@@ -53,11 +57,11 @@ public class NativeBreakpader {
     /**
      * translate dump file to people readable content
      *
-     * @param dumpFilePath
+     * @param crashFilePath
      * @param symbolFilesDir
      * @return process result
      */
-    public static native ProcessResult translateDumpFile(String dumpFilePath, String symbolFilesDir);
+    public static native ProcessResult translateCrashFile(String crashFilePath, String symbolFilesDir);
 
     /**
      * test

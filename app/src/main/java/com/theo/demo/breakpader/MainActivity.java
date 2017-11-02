@@ -1,5 +1,5 @@
 /*
- *    Copyright 2017, $user
+ *    Copyright 2017, theotian
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 public class MainActivity extends AppCompatActivity {
 
     String symbolFileRoot;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,8 +117,9 @@ public class MainActivity extends AppCompatActivity {
                 if (dumpDir.list().length <= 0) {
                     return;
                 }
-                NativeBreakpader.translateDumpFile(dumpDir.listFiles()[0].getAbsolutePath(), symbolFileRoot);
-                Log.d("test", "translateDumpFile cost:" + (System.currentTimeMillis() - start));
+                NativeBreakpader.ProcessResult processResult = NativeBreakpader.translateCrashFile(dumpDir.listFiles()[0].getAbsolutePath(), symbolFileRoot);
+                Log.d("test", "processResult:" + processResult.crashed + "," + processResult.crash_reason + "," + processResult.crash_address);
+                Log.d("test", "translateCrashFile cost:" + (System.currentTimeMillis() - start));
             }
         });
     }
