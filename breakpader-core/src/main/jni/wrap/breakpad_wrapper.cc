@@ -76,25 +76,23 @@ namespace breakpad_wrapper {
      * @param stack
      * @param result
      */
-    static void fill_stack_frames(IN const CallStack *stack, OUT struct_translate_result& result) {
+    static void fill_stack_frames(IN const CallStack *stack, OUT struct_translate_result* result) {
         int frame_count = stack->frames()->size();
-        result.stack_frames_num = (MAX_STACK_FRAME_NUM - frame_count) < 0 ? MAX_STACK_FRAME_NUM : frame_count;
-        result.p_stack_frames = (struct_stack_frame *) malloc(sizeof(struct_stack_frame) * result.stack_frames_num);
+        result->stack_frames_num = (MAX_STACK_FRAME_NUM - frame_count) < 0 ? MAX_STACK_FRAME_NUM : frame_count;
+        result->p_stack_frames = (struct_stack_frame *) malloc(sizeof(struct_stack_frame) * result->stack_frames_num);
 
-        for (int frame_index = 0; frame_index < result.stack_frames_num; ++frame_index) {
+        for (int frame_index = 0; frame_index < result->stack_frames_num; ++frame_index) {
             const StackFrame *frame = stack->frames()->at(frame_index);
-            result.p_stack_frames[frame_index].frame_index = frame_index;
+            result->p_stack_frames[frame_index].frame_index = frame_index;
 
             uint64_t instruction_address = frame->ReturnAddress();
-            result.p_stack_frames[frame_index].instruction = instruction_address;
+            result->p_stack_frames[frame_index].instruction = instruction_address;
 
             if (frame->module) {
-                result.p_stack_frames[frame_index].p_code_file = str_clone(PathnameStripper::File(frame->module->code_file()).c_str());
+                result->p_stack_frames[frame_index].p_code_file = str_clone(PathnameStripper::File(frame->module->code_file()).c_str());
 //                LOGD("%s", PathnameStripper::File(frame->module->code_file()).c_str());
                 if (!frame->function_name.empty()) {
-                    result.p_stack_frames[frame_index].p_function_name = str_clone(frame->function_name.c_str());
-                    LOGD("frame_index:%d p_function_name:%s", frame_index,
-                         result.p_stack_frames[frame_index].p_function_name);
+                    result->p_stack_frames[frame_index].p_function_name = str_clone(frame->function_name.c_str());
 //                    LOGD("!%s", frame->function_name.c_str());
                     if (!frame->source_file_name.empty()) {
 //                        string source_file = PathnameStripper::File(frame->source_file_name);
@@ -102,22 +100,27 @@ namespace breakpad_wrapper {
 //                               source_file.c_str(),
 //                               frame->source_line,
 //                               instruction_address - frame->source_line_base);
-                        result.p_stack_frames[frame_index].offset = instruction_address - frame->source_line_base;
+                        result->p_stack_frames[frame_index].offset = instruction_address - frame->source_line_base;
                     } else {
-                        result.p_stack_frames[frame_index].offset = instruction_address - frame->function_base;
+                        result->p_stack_frames[frame_index].offset = instruction_address - frame->function_base;
 //                        LOGD(" + 0x%" PRIx64, instruction_address - frame->function_base);
                     }
                 } else {
-                    result.p_stack_frames[frame_index].offset = instruction_address - frame->module->base_address();
+                    result->p_stack_frames[frame_index].offset = instruction_address - frame->module->base_address();
 
 //                    LOGD(" + 0x%" PRIx64,
 //                           instruction_address - frame->module->base_address());
                 }
             } else {
-                result.p_stack_frames[frame_index].offset = instruction_address;
+                result->p_stack_frames[frame_index].offset = instruction_address;
 
 //                LOGD("0x%" PRIx64, instruction_address);
             }
+            if(result->p_stack_frames[frame_index].p_function_name) {
+                LOGD("frame_index:%d p_function_name:%p", frame_index,
+                     result->p_stack_frames[frame_index].p_function_name);
+            }
+
             LOGD("\n ");
         }
     }
@@ -126,6 +129,7 @@ namespace breakpad_wrapper {
                                           const char *symbol_files_dir) {
 
         struct_translate_result result;
+        memset(&result, 0, sizeof(struct_translate_result));
 
         LOGD("translate_crash_file IN");
         LOGD("translate_crash_file crash_file_path:%s", crash_file_path);
@@ -171,11 +175,11 @@ namespace breakpad_wrapper {
             // If the thread that requested the dump is known, print it first.
             int requesting_thread = process_state.requesting_thread();
             if (requesting_thread != -1) {
-                fill_stack_frames(process_state.threads()->at(requesting_thread), result);
+                fill_stack_frames(process_state.threads()->at(requesting_thread), &result);
 
                 for (int i = 0; i < result.stack_frames_num; i++) {
                     struct_stack_frame frame = result.p_stack_frames[i];
-                    LOGD("%d,%s,0x%"PRIx64",0x%"PRIx64, frame.frame_index, frame.p_code_file, frame.instruction,frame.offset);
+                    LOGD("%d,%s,0x%"PRIx64",0x%"PRIx64, frame.frame_index, frame.p_code_file,frame.instruction,frame.offset);
                 }
             }
         }

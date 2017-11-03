@@ -26,21 +26,6 @@ public class NativeBreakpader {
         System.loadLibrary("breakpader");
     }
 
-    public static class ProcessResult {
-        public boolean crashed;
-        public String crash_reason;
-        public long crash_address;
-        StackFrame[] crash_stack_frames;
-    }
-
-    public static class StackFrame {
-        public int frame_index;
-        public String code_file;
-        public long instruction;
-        public String function_name;
-        public long offset;
-    }
-
     /**
      * API
      */
@@ -48,10 +33,10 @@ public class NativeBreakpader {
     /**
      * init dump client
      *
-     * @param dump_path
+     * @param crash_dump_dir
      * @return result code
      */
-    public static native int init(String dump_path);
+    public static native int init(String crash_dump_dir);
 
     /**
      * dump so symbol file

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.theo.demo.breakpader.MainActivity">
 
     <LinearLayout
@@ -12,34 +13,48 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btInit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:text="Init"/>
 
         <Button
             android:id="@+id/btTestCrash"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="TestCrash"/>
-
-        <Button
-            android:id="@+id/btDumpSyms"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="DumpSysm"/>
-
-        <Button
-            android:id="@+id/btTranslateDump"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="TranslateDump"/>
+            android:layout_marginLeft="10dp"
+            android:text="Crash"/>
     </LinearLayout>
-</RelativeLayout>
+
+
+    <ListView
+        android:id="@+id/lvCrashList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="5dp"
+            android:text="Result"
+            android:textSize="18sp"
+            />
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/tvResult"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+</LinearLayout>

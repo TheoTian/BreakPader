@@ -18,36 +18,37 @@ package com.theo.demo.breakpader;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.theo.breakpader.NativeBreakpader;
+import com.theo.breakpader.ProcessResult;
+import com.theo.demo.breakpader.global.MyApplication;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    String symbolFileRoot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-        symbolFileRoot = MainActivity.this.getExternalCacheDir().getAbsolutePath() + "/symbols/";
     }
 
     private void initView() {
         findViewById(R.id.btInit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String dumpDir = getExternalCacheDir().getAbsolutePath() + "/dump/";
-                new File(dumpDir).mkdirs();
-                NativeBreakpader.init(dumpDir);
+                /**
+                 * these may cost some time. you can try to call on sub thread.
+                 */
+                MyApplication.getBreakpader().init();
+                MyApplication.getBreakpader().symbol(new File(MainActivity.this.getApplicationInfo().dataDir + "/lib/").listFiles());
             }
         });
 
@@ -58,69 +59,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btDumpSyms).setOnClickListener(new View.OnClickListener() {
+        ListView listView = (ListView) findViewById(R.id.lvCrashList);
+        final File[] filelist = new File(MyApplication.getBreakpader().getCrashRootDir()).listFiles();
+        listView.setAdapter((new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, new File(MyApplication.getBreakpader().getCrashRootDir()).list())));
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                long start = System.currentTimeMillis();
-                String symbolsFilePath = MainActivity.this.getExternalCacheDir().getAbsolutePath() + "/libbreakpader.so.sym";
-                File symbolsFile = new File(symbolsFilePath);
-                if (symbolsFile.exists()) {
-                    symbolsFile.delete();
-                }
-                NativeBreakpader.dumpSymbolFile(MainActivity.this.getApplicationInfo().dataDir + "/lib/libbreakpader.so", symbolsFilePath);
-                try {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(symbolsFile)));
-                    String line = null;
-                    String moduleLine = null;
-
-                    while ((line = reader.readLine()) != null) {
-                        if (line.startsWith("MODULE")) {
-                            moduleLine = line;
-                        }
-                    }
-
-                    if (moduleLine == null) {
-                        return;
-                    }
-
-                    String[] modules = moduleLine.split("\\s");
-                    String os = null;
-                    String architecture = null;
-                    String id = null;
-                    String name = null;
-                    if (modules.length == 5) {
-                        os = modules[1];
-                        architecture = modules[2];
-                        id = modules[3];
-                        name = modules[4];
-                    }
-
-
-                    File symbolDir = new File(symbolFileRoot + name + "/" + id);
-                    symbolDir.mkdirs();
-
-                    symbolsFile.renameTo(new File(symbolDir.getAbsolutePath() + "/" + symbolsFile.getName()));
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                Log.d("test", "dumpSymbolFile cost:" + (System.currentTimeMillis() - start));
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                translate(filelist[position].getAbsolutePath());
             }
         });
+    }
 
-        findViewById(R.id.btTranslateDump).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                long start = System.currentTimeMillis();
-                File dumpDir = new File(MainActivity.this.getExternalCacheDir().getAbsolutePath() + "/dump/");
-                if (dumpDir.list().length <= 0) {
-                    return;
-                }
-                NativeBreakpader.ProcessResult processResult = NativeBreakpader.translateCrashFile(dumpDir.listFiles()[0].getAbsolutePath(), symbolFileRoot);
-                Log.d("test", "processResult:" + processResult.crashed + "," + processResult.crash_reason + "," + processResult.crash_address);
-                Log.d("test", "translateCrashFile cost:" + (System.currentTimeMillis() - start));
+    private void translate(String crashFilePath) {
+        ProcessResult processResult = MyApplication.getBreakpader().translate(crashFilePath);
+        String result = "";
+        result += "crashed:" + processResult.crashed + "\n";
+        result += "crash_reason:" + processResult.crash_reason + "\n";
+        result += "crash_address:" + processResult.crash_address + "\n\n";
+        if (processResult.crash_stack_frames != null) {
+            for (ProcessResult.StackFrame stackFrame : processResult.crash_stack_frames) {
+                result += stackFrame.frame_index + " " + stackFrame.instruction
+                        + " " + stackFrame.code_file + " + " + stackFrame.offset + "\n";
             }
-        });
+        }
+        ((TextView) findViewById(R.id.tvResult)).setText(result);
     }
 }

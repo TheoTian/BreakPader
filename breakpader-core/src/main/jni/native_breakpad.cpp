@@ -17,8 +17,8 @@
 #include "wrap/breakpad_wrapper.h"
 
 static char *class_nativebreakpader = "com/theo/breakpader/NativeBreakpader";
-static char *class_processresult = "com/theo/breakpader/NativeBreakpader$ProcessResult";
-static char *class_stackframe = "com/theo/breakpader/NativeBreakpader$StackFrame";
+static char *class_processresult = "com/theo/breakpader/ProcessResult";
+static char *class_stackframe = "com/theo/breakpader/ProcessResult$StackFrame";
 /**
  * API ZONE
  */
@@ -72,8 +72,9 @@ JNIEXPORT jobject JNICALL TranslateCrashFile(JNIEnv *env, jobject jobj, jstring 
                                                           "Ljava/lang/String;");
     jfieldID jfield_long_crash_address = env->GetFieldID(jprocessresult_class, "crash_address",
                                                          "J");
-    jfieldID jfield_object_array_frames = env->GetFieldID(jprocessresult_class, "crash_stack_frames",
-                                                         "[Lcom/theo/breakpader/NativeBreakpader$StackFrame;");
+    jfieldID jfield_object_array_frames = env->GetFieldID(jprocessresult_class,
+                                                          "crash_stack_frames",
+                                                          "[Lcom/theo/breakpader/ProcessResult$StackFrame;");
     /**
      * Get ProcessResult Object
      */
@@ -94,6 +95,10 @@ JNIEXPORT jobject JNICALL TranslateCrashFile(JNIEnv *env, jobject jobj, jstring 
                                                               "<init>",
                                                               "()V");//构造函数ID
 
+    jobjectArray jstackframe_array = env->NewObjectArray(translateResult.stack_frames_num,
+                                                         jstackframe_class, NULL);
+    env->SetObjectField(jprocessresult_obj, jfield_object_array_frames, jstackframe_array);
+
     jfieldID jfield_int_frame_index = env->GetFieldID(jstackframe_class, "frame_index", "I");
     jfieldID jfield_string_code_file = env->GetFieldID(jstackframe_class, "code_file",
                                                        "Ljava/lang/String;");
@@ -104,8 +109,31 @@ JNIEXPORT jobject JNICALL TranslateCrashFile(JNIEnv *env, jobject jobj, jstring 
 
     for (int i = 0; i < translateResult.stack_frames_num; i++) {
         breakpad_wrapper::struct_stack_frame frame = translateResult.p_stack_frames[i];
+
         jobject jstackframe_obj = env->NewObject(jstackframe_class,
                                                  jstackframe_construct_method);
+
+        jstring jstring_code_file = env->NewStringUTF(frame.p_code_file);
+        jstring jstring_fun_name = env->NewStringUTF(frame.p_function_name);
+
+        env->SetIntField(jstackframe_obj, jfield_int_frame_index, frame.frame_index);
+        env->SetObjectField(jstackframe_obj, jfield_string_code_file, jstring_code_file);
+        env->SetLongField(jstackframe_obj, jfield_long_instruction, frame.instruction);
+        env->SetObjectField(jstackframe_obj, jfield_string_function_name, jstring_fun_name);
+        env->SetLongField(jstackframe_obj, jfield_long_offset, frame.offset);
+
+        env->SetObjectArrayElement(jstackframe_array, i, jstackframe_obj);
+
+        env->DeleteLocalRef(jstackframe_obj);
+        env->DeleteLocalRef(jstring_code_file);
+        env->DeleteLocalRef(jstring_fun_name);
+
+        if (frame.p_code_file) {
+            free(frame.p_code_file);
+        }
+        if (frame.p_function_name) {
+            free(frame.p_function_name);
+        }
     }
 
     if (translateResult.p_crash_reason) {
@@ -137,11 +165,11 @@ JNIEXPORT jint JNICALL TestCrash(JNIEnv *env, jobject jobj) {
 }
 
 static JNINativeMethod nativeMethods[] = {
-        {"testJNI",            "()Ljava/lang/String;",                                                                       (void *) TestJNI},
-        {"init",               "(Ljava/lang/String;)I",                                                                      (void *) Init},
-        {"testCrash",          "()I",                                                                                        (void *) TestCrash},
-        {"dumpSymbolFile",     "(Ljava/lang/String;Ljava/lang/String;)I",                                                    (void *) DumpSymbolsFile},
-        {"translateCrashFile", "(Ljava/lang/String;Ljava/lang/String;)Lcom/theo/breakpader/NativeBreakpader$ProcessResult;", (void *) TranslateCrashFile},
+        {"testJNI",            "()Ljava/lang/String;",                                                      (void *) TestJNI},
+        {"init",               "(Ljava/lang/String;)I",                                                     (void *) Init},
+        {"testCrash",          "()I",                                                                       (void *) TestCrash},
+        {"dumpSymbolFile",     "(Ljava/lang/String;Ljava/lang/String;)I",                                   (void *) DumpSymbolsFile},
+        {"translateCrashFile", "(Ljava/lang/String;Ljava/lang/String;)Lcom/theo/breakpader/ProcessResult;", (void *) TranslateCrashFile},
 };
 
 JNIEXPORT int JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
