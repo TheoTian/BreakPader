@@ -33,6 +33,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        //new the instance and set the root directory to dump
         sBreakpaderInstance = new Breakpader(getExternalCacheDir() + "/breakpader/");
     }
 
