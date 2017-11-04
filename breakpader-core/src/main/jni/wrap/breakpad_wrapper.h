@@ -44,17 +44,17 @@ namespace breakpad_wrapper {
 
     struct struct_stack_frame {
         int frame_index;
-        char *p_code_file = NULL;
+        char *p_code_file;
+        char *p_function_name;
         uint64_t instruction;
-        char *p_function_name = NULL;
         uint64_t offset;
     };
 
     struct struct_translate_result {
         bool crashed;
-        char *p_crash_reason = NULL;
+        char *p_crash_reason;
         uint64_t crash_address;
-        struct_stack_frame *p_stack_frames = NULL;
+        struct_stack_frame *p_stack_frames;
         int stack_frames_num;
     };
 

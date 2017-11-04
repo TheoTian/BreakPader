@@ -80,7 +80,8 @@ public class MainActivity extends AppCompatActivity {
         if (processResult.crash_stack_frames != null) {
             for (ProcessResult.StackFrame stackFrame : processResult.crash_stack_frames) {
                 result += stackFrame.frame_index + " " + stackFrame.instruction
-                        + " " + stackFrame.code_file + " + " + stackFrame.offset + "\n";
+                        + " " + stackFrame.code_file + "\n[" + (stackFrame.function_name != null ? stackFrame.function_name : "")
+                        + " + " + stackFrame.offset + "]\n";
             }
         }
         ((TextView) findViewById(R.id.tvResult)).setText(result);
