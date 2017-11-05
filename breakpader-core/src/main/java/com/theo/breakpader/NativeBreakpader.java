@@ -33,7 +33,7 @@ public class NativeBreakpader {
     /**
      * init dump client
      *
-     * @param crash_dump_dir
+     * @param crash_dump_dir crash dump directory
      * @return result code
      */
     public static native int init(String crash_dump_dir);
@@ -41,8 +41,8 @@ public class NativeBreakpader {
     /**
      * dump so symbol file
      *
-     * @param soPath
-     * @param saveSyms
+     * @param soPath so file path
+     * @param saveSyms save Symbol File Path
      * @return result code
      */
     public static native int dumpSymbolFile(String soPath, String saveSyms);
@@ -58,6 +58,10 @@ public class NativeBreakpader {
 
     /**
      * test
+     */
+    /**
+     * test Crash
+     * @return
      */
     public static native int testCrash();
 
